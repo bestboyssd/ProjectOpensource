@@ -168,21 +168,19 @@ main { background: var(--paper); }
 .ticker-window::before { left:0; background:linear-gradient(90deg,#e7f1c2,transparent); }
 .ticker-window::after { right:0; background:linear-gradient(270deg,#e7f1c2,transparent); }
 .ticker-track { display:flex; width:max-content; min-height:58px; gap:0; padding:0; animation:ticker-scroll 31s linear infinite; will-change:transform; }
-.ticker-group { display:flex; flex:0 0 auto; align-items:center; gap:clamp(18px,3vw,38px); padding:0 clamp(24px,5vw,72px); }
-.ticker-item { color:#273b30; font:700 clamp(12px,1.2vw,14px)/1 var(--mono); letter-spacing:1.25px; white-space:nowrap; }
+.ticker-group { display:flex; flex:0 0 auto; align-items:center; gap:clamp(22px,4vw,54px); padding:0 clamp(24px,5vw,72px); }
+.ticker-item { color:#273b30; font:900 clamp(24px,5.6vw,40px)/.95 var(--display); letter-spacing:-.055em; white-space:nowrap; }
 .ticker-highlight { color:#557348; }
-.ticker-track i { width:23px; height:23px; display:grid; flex:0 0 23px; place-items:center; border:1px solid rgba(72,99,62,.22); border-radius:50%; background:rgba(255,255,255,.42); color:#557348; font:normal 11px/1 var(--body); box-shadow:0 1px 3px rgba(39,59,48,.07); }
 .ticker-window:hover .ticker-track { animation-play-state:paused; }
 @keyframes ticker-scroll { to { transform:translateX(-50%); } }
 @media (max-width:680px) {
   .ticker { min-height:52px; }
   .ticker-track { min-height:52px; animation-duration:24s; }
-  .ticker-group { gap:14px; padding:0 20px; }
-  .ticker-item { font-size:10px; letter-spacing:.8px; }
-  .ticker-track i { width:20px; height:20px; flex-basis:20px; font-size:9px; }
+  .ticker-group { gap:clamp(20px,6vw,32px); padding:0 22px; }
+  .ticker-item { font-size:clamp(23px,7vw,32px); letter-spacing:-.055em; }
 }
 @media (prefers-reduced-motion:reduce) {
-  .ticker-track { width:100%; min-height:0; justify-content:center; animation:none; transform:none; }
-  .ticker-group { flex:1 1 auto; flex-wrap:wrap; justify-content:center; gap:10px 14px; padding:12px; }
+  .ticker-track { width:100%; min-height:inherit; justify-content:center; animation:none; transform:none; }
+  .ticker-group { flex:0 0 auto; flex-wrap:nowrap; justify-content:center; gap:clamp(16px,4vw,36px); padding:0 16px; }
   .ticker-group + .ticker-group { display:none; }
 }
