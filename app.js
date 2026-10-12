@@ -112,6 +112,7 @@
     const topics = topicsOf(repo);
     const words = `${repo.name} ${repo.description || ""} ${topics.join(" ")}`.toLowerCase();
     if (topics.some(topic => /android|ios|mobile|flutter|react-native/.test(topic)) || /android|mobile app|ios app|flutter|react native/.test(words)) return "mobile";
+    if (repo.homepage) return "web";
     if (topics.some(topic => /web|website|webapp/.test(topic)) || /website|web app|webapp|frontend|next\.js/.test(words)) return "web";
     return "tools";
   }
@@ -151,10 +152,15 @@
     const downloadUrl = directDownload ? safeUrl(directDownload, releaseUrl) : releaseUrl;
     const website = cleanText(details.websiteUrl);
     const websiteUrl = website ? safeUrl(website) : safeUrl(repo.homepage || "");
+    const repoUrl = safeUrl(repo.html_url);
+    const primaryAction = category === "web"
+      ? `<a class="download-action source-action" href="${escapeHTML(repoUrl)}" target="_blank" rel="noreferrer" aria-label="View source for ${escapeHTML(title)}">${icon("github")}<span>View source</span></a>`
+      : `<a class="download-action" href="${escapeHTML(downloadUrl)}" ${directDownload ? "download" : ""} aria-label="Download ${escapeHTML(title)}">${icon("download")}<span>Get app</span></a>`;
+    const repoAction = category === "web" ? "" : `<a class="repo-action" href="${escapeHTML(repoUrl)}" target="_blank" rel="noreferrer" aria-label="View repository for ${escapeHTML(title)}">${icon("github")}</a>`;
     return `<article class="project-card" data-repository="${escapeHTML(repo.full_name)}" data-custom-download="${directDownload ? "true" : "false"}" style="--hue:${hue};--card-delay:${Math.min(index * 42, 336)}ms">
       <div class="project-cover"><span class="cover-type">${categoryLabel(category)}</span><a class="card-star" href="${escapeHTML(safeUrl(repo.html_url))}" target="_blank" rel="noreferrer" aria-label="View ${escapeHTML(title)} on GitHub">${icon("star")}<span>${repo.stargazers_count || 0}</span></a><span class="cover-icon">${escapeHTML(title.slice(0, 1))}</span><span class="cover-orbit"></span><span class="cover-spark">✳</span></div>
       <div class="project-body"><h3>${escapeHTML(title)}</h3><p class="project-description">${escapeHTML(description)}</p><div class="tag-list">${tags.map((tag, tagIndex) => `<span class="project-tag ${tagIndex === 0 ? "primary-tag" : ""}">${escapeHTML(tag)}</span>`).join("")}</div>
-      <div class="card-footer"><span class="updated-date">Updated ${escapeHTML(updated)}</span><div class="card-ctas">${websiteUrl !== "#" ? `<a class="website-action" href="${escapeHTML(websiteUrl)}" target="_blank" rel="noreferrer" aria-label="Open ${escapeHTML(title)}">${icon("external")}<span>Open</span></a>` : ""}<a class="repo-action" href="${escapeHTML(safeUrl(repo.html_url))}" target="_blank" rel="noreferrer" aria-label="View repository for ${escapeHTML(title)}">${icon("github")}</a><a class="download-action" href="${escapeHTML(downloadUrl)}" ${directDownload ? "download" : ""} aria-label="Download ${escapeHTML(title)}">${icon("download")}<span>Get app</span></a></div></div></div>
+      <div class="card-footer"><span class="updated-date">Updated ${escapeHTML(updated)}</span><div class="card-ctas">${websiteUrl !== "#" ? `<a class="website-action" href="${escapeHTML(websiteUrl)}" target="_blank" rel="noreferrer" aria-label="Open ${escapeHTML(title)}">${icon("external")}<span>Open</span></a>` : ""}${repoAction}${primaryAction}</div></div></div>
     </article>`;
   }
 
@@ -308,7 +314,7 @@
 
   document.addEventListener("click", async event => {
     const link = event.target.closest(".download-action");
-    if (!link || link.closest(".project-card")?.dataset.customDownload === "true") return;
+    if (!link || link.classList.contains("source-action") || link.closest(".project-card")?.dataset.customDownload === "true") return;
     const repo = repositoryMap.get(link.closest(".project-card")?.dataset.repository);
     if (!repo) return;
     event.preventDefault();
