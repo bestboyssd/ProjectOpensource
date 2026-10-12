@@ -173,7 +173,7 @@ main { background: var(--paper); }
 .ticker-track { display:flex; width:max-content; min-height:58px; gap:0; padding:0; animation:ticker-scroll 31s linear infinite; will-change:transform; }
 .ticker-group { --phrase-gap:clamp(22px,4vw,54px); display:flex; flex:0 0 auto; align-items:center; gap:var(--phrase-gap); padding:0 calc(var(--phrase-gap)/2); }
 .ticker-item { color:#273b30; font:900 clamp(24px,5.6vw,40px)/.95 var(--display); letter-spacing:-.055em; white-space:nowrap; }
-.ticker-highlight { color:#557348; }
+.ticker-highlight { color:inherit; }
 .ticker-window:hover .ticker-track { animation-play-state:paused; }
 @keyframes ticker-scroll { to { transform:translateX(-50%); } }
 @media (max-width:680px) {
