@@ -27,7 +27,45 @@ const fields = [
   "full_name", "name", "html_url", "description", "language", "stargazers_count",
   "archived", "fork", "private", "updated_at", "default_branch", "topics", "homepage"
 ];
-const snapshot = repos.map(repo => Object.fromEntries(fields.map(field => [field, repo[field] ?? null])));
+const snapshot = new Array(repos.length);
+let nextIndex = 0;
+
+async function enrichRepositories() {
+  while (true) {
+    const index = nextIndex++;
+    if (index >= repos.length) return;
+    const repo = repos[index];
+    let languages = {};
+    const [owner, name] = String(repo.full_name || "").split("/");
+    if (owner && name) {
+      try {
+        const languageUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/languages`;
+        const languageResponse = await fetch(languageUrl, {
+          headers: {
+            Accept: "application/vnd.github+json",
+            Authorization: `Bearer ${token}`,
+            "User-Agent": "ProjectOpensourceSite/1.0",
+            "X-GitHub-Api-Version": "2022-11-28"
+          }
+        });
+        if (languageResponse.ok) {
+          const result = await languageResponse.json();
+          if (result && typeof result === "object" && !Array.isArray(result)) {
+            languages = Object.fromEntries(Object.entries(result)
+              .filter(([language, bytes]) => language && Number.isFinite(bytes) && bytes >= 0)
+              .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])));
+          }
+        }
+      } catch {}
+    }
+    snapshot[index] = {
+      ...Object.fromEntries(fields.map(field => [field, repo[field] ?? null])),
+      languages
+    };
+  }
+}
+
+await Promise.all(Array.from({ length: Math.min(6, repos.length) }, () => enrichRepositories()));
 await mkdir(new URL("../_site/", import.meta.url), { recursive: true });
 await writeFile(new URL("../_site/repos.json", import.meta.url), `${JSON.stringify(snapshot)}\n`, "utf8");
-process.stdout.write(`Prepared ${snapshot.length} repositories for ${username}.\n`);
+process.stdout.write(`Prepared ${snapshot.length} repositories with language details for ${username}.\n`);

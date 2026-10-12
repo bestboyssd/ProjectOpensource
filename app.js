@@ -116,16 +116,27 @@
 
   function projectCategory(repo) {
     const override = detailsOf(repo).category;
-    if (["web", "mobile", "tools"].includes(override)) return override;
+    if (override === "web") return "web";
+    if (["app", "mobile", "tools"].includes(override)) return "app";
     const topics = topicsOf(repo);
     const words = `${repo.name} ${repo.description || ""} ${topics.join(" ")}`.toLowerCase();
-    if (topics.some(topic => /android|ios|mobile|flutter|react-native/.test(topic)) || /android|mobile app|ios app|flutter|react native/.test(words)) return "mobile";
+    if (topics.some(topic => /android|ios|mobile|flutter|react-native/.test(topic)) || /android|mobile app|ios app|flutter|react native/.test(words)) return "app";
     if (repo.homepage) return "web";
     if (topics.some(topic => /web|website|webapp/.test(topic)) || /website|web app|webapp|frontend|next\.js|cloud service/.test(words)) return "web";
-    return "tools";
+    return "app";
   }
 
   function categoryLabel(category) { return category === "web" ? "WEBSITE" : "APP"; }
+
+  function languagesOf(repo) {
+    const languageMap = repo.languages && typeof repo.languages === "object" && !Array.isArray(repo.languages) ? repo.languages : {};
+    const languages = Object.entries(languageMap)
+      .filter(([name, bytes]) => name && Number.isFinite(Number(bytes)) && Number(bytes) >= 0)
+      .sort((a, b) => Number(b[1]) - Number(a[1]) || a[0].localeCompare(b[0]))
+      .map(([name]) => name);
+    return languages.length ? languages : (repo.language ? [repo.language] : []);
+  }
+
   function icon(name) {
     const paths = {
       github: '<path d="M12 .9a11.1 11.1 0 0 0-3.5 21.63c.55.1.76-.24.76-.53v-2.02c-3.1.68-3.76-1.31-3.76-1.31-.5-1.3-1.24-1.65-1.24-1.65-1.02-.7.08-.69.08-.69 1.12.08 1.71 1.15 1.71 1.15 1 1.72 2.62 1.23 3.26.94.1-.73.4-1.23.71-1.52-2.48-.28-5.08-1.24-5.08-5.52 0-1.22.44-2.21 1.15-2.99-.12-.28-.5-1.42.11-2.95 0 0 .94-.3 3.05 1.14a10.6 10.6 0 0 1 5.55 0c2.11-1.44 3.04-1.14 3.04-1.14.61 1.53.23 2.67.12 2.95.71.78 1.14 1.77 1.14 2.99 0 4.29-2.61 5.24-5.1 5.52.4.35.76 1.03.76 2.08V22c0 .3.2.64.77.53A11.1 11.1 0 0 0 12 .9Z"/>',
@@ -140,7 +151,7 @@
     const query = searchInput.value.trim().toLowerCase();
     return repositories.filter(repo => {
       const matchesCategory = activeFilter === "all" || projectCategory(repo) === activeFilter;
-      const searchable = `${titleOf(repo)} ${descriptionOf(repo)} ${repo.language || ""} ${topicsOf(repo).join(" ")}`.toLowerCase();
+      const searchable = `${titleOf(repo)} ${descriptionOf(repo)} ${languagesOf(repo).join(" ")} ${topicsOf(repo).join(" ")}`.toLowerCase();
       return matchesCategory && (!query || searchable.includes(query));
     });
   }
@@ -148,14 +159,12 @@
   function cardFor(repo, index) {
     const details = detailsOf(repo);
     const category = projectCategory(repo);
-    const language = repo.language || "Open source";
+    const languages = languagesOf(repo);
     const title = titleOf(repo);
     const description = descriptionOf(repo);
     const updated = month.format(new Date(repo.updated_at));
     const hue = (82 + index * 79) % 360;
     const directDownload = cleanText(details.downloadUrl);
-    const topics = topicsOf(repo).filter(topic => !["portfolio", "web", "android", "mobile", "ios", "flutter"].includes(topic)).slice(0, 2);
-    const tags = [language, ...topics].slice(0, 3);
     const releaseUrl = `${safeUrl(repo.html_url)}/archive/refs/heads/${encodeURIComponent(repo.default_branch || "main")}.zip`;
     const downloadUrl = directDownload ? safeUrl(directDownload, releaseUrl) : releaseUrl;
     const website = cleanText(details.websiteUrl);
@@ -170,13 +179,13 @@
       : "";
     return `<article class="project-card" data-repository="${escapeHTML(repo.full_name)}" data-custom-download="${directDownload ? "true" : "false"}" style="--hue:${hue};--card-delay:${Math.min(index * 42, 336)}ms">
       <div class="project-cover"><span class="cover-type">${categoryLabel(category)}</span><a class="card-star" href="${escapeHTML(safeUrl(repo.html_url))}" target="_blank" rel="noreferrer" aria-label="View ${escapeHTML(title)} on GitHub">${icon("star")}<span>${repo.stargazers_count || 0}</span></a><span class="cover-icon">${escapeHTML(title.slice(0, 1))}</span><span class="cover-orbit"></span><span class="cover-spark">✳</span></div>
-      <div class="project-body"><h3>${escapeHTML(title)}</h3><p class="project-description">${escapeHTML(description)}</p><div class="tag-list">${tags.map((tag, tagIndex) => `<span class="project-tag ${tagIndex === 0 ? "primary-tag" : ""}">${escapeHTML(tag)}</span>`).join("")}</div>
+      <div class="project-body"><h3>${escapeHTML(title)}</h3><p class="project-description">${escapeHTML(description)}</p>${languages.length ? `<div class="made-with"><span class="made-with-label">MADE WITH</span><div class="tag-list" aria-label="Made with ${escapeHTML(languages.join(", "))}">${languages.map(language => `<span class="project-tag">${escapeHTML(language)}</span>`).join("")}</div></div>` : ""}
       <div class="card-footer"><span class="updated-date">Updated ${escapeHTML(updated)}</span><div class="card-ctas">${extraWebsiteAction}${repoAction}${primaryAction}</div></div></div>
     </article>`;
   }
 
   function updateCounts() {
-    const counts = { all: repositories.length, mobile: 0, web: 0 };
+    const counts = { all: repositories.length, app: 0, web: 0 };
     repositories.forEach(repo => {
       const category = projectCategory(repo);
       if (Object.hasOwn(counts, category)) counts[category]++;
@@ -266,6 +275,10 @@
     emptyMessage.textContent = "Gathering the projects from GitHub.";
     retryButton.hidden = true;
     try {
+      const snapshotPromise = fetch(new URL("repos.json", document.baseURI), { cache: "no-store" })
+        .then(async response => response.ok ? response.json() : null)
+        .then(snapshot => Array.isArray(snapshot) ? snapshot : null)
+        .catch(() => null);
       const apiBase = cleanText(baseConfig.apiBaseUrl).replace(/\/$/, "");
       const projectsUrl = apiBase
         ? `${apiBase}/api/projects?username=${encodeURIComponent(username)}`
@@ -292,15 +305,25 @@
 
       // Keep the generated snapshot as an outage fallback, never as the preferred source.
       if (data === null) {
-        try {
-          const snapshot = await fetch(new URL("repos.json", document.baseURI), { cache: "no-store" });
-          if (!snapshot.ok) throw new Error("The repository snapshot is unavailable.");
-          const snapshotProjects = await snapshot.json();
-          if (!Array.isArray(snapshotProjects)) throw new Error("The repository snapshot has an unexpected format.");
-          data = snapshotProjects;
-        } catch (snapshotError) {
-          throw apiError || snapshotError;
-        }
+        const snapshotProjects = await snapshotPromise;
+        if (!snapshotProjects) throw apiError || new Error("The repository snapshot is unavailable.");
+        data = snapshotProjects;
+      } else {
+        snapshotPromise.then(snapshotProjects => {
+          if (!snapshotProjects) return;
+          const snapshotByName = new Map(snapshotProjects.map(repo => [String(repo.full_name || "").toLowerCase(), repo]));
+          let changed = false;
+          repositories = repositories.map(repo => {
+            const snapshotRepo = snapshotByName.get(String(repo.full_name || "").toLowerCase());
+            if (!snapshotRepo?.languages) return repo;
+            changed = true;
+            return { ...repo, languages: snapshotRepo.languages };
+          });
+          if (changed) {
+            repositoryMap = new Map(repositories.map(repo => [repo.full_name, repo]));
+            render();
+          }
+        }).catch(() => {});
       }
       const siteRepo = `${username}/${cleanText(baseConfig.siteRepositoryName)}`.toLowerCase();
       const publicRepos = data.filter(repo => !repo.fork && !repo.private && repo.full_name.toLowerCase() !== siteRepo);
