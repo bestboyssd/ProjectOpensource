@@ -215,22 +215,42 @@
     emptyMessage.textContent = "Gathering the projects from GitHub.";
     retryButton.hidden = true;
     try {
-      const snapshot = await fetch(new URL("repos.json", document.baseURI), { cache: "no-store" });
-      let data;
-      if (snapshot.ok) {
-        data = await snapshot.json();
-      } else {
-        const apiBase = cleanText(baseConfig.apiBaseUrl).replace(/\/$/, "");
-        const projectsUrl = apiBase
-          ? `${apiBase}/api/projects?username=${encodeURIComponent(username)}`
-          : `https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=100&sort=updated&type=owner`;
-        const response = await fetch(projectsUrl, { headers: { Accept: "application/vnd.github+json" } });
+      const apiBase = cleanText(baseConfig.apiBaseUrl).replace(/\/$/, "");
+      const projectsUrl = apiBase
+        ? `${apiBase}/api/projects?username=${encodeURIComponent(username)}`
+        : `https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=100&sort=updated&type=owner`;
+      let data = null;
+      let apiError = null;
+
+      // Prefer the live list so deleted repositories do not linger in an older Pages snapshot.
+      try {
+        const response = await fetch(projectsUrl, {
+          cache: "no-store",
+          headers: { Accept: "application/vnd.github+json" }
+        });
         if (response.status === 404) throw new Error(`The GitHub profile “${username}” could not be found. Check config.js or the admin catalog.`);
         if (response.status === 403 || response.status === 429) throw new Error("GitHub is temporarily limiting requests. Please wait a little and try again.");
         if (!response.ok) throw new Error("GitHub is having trouble responding. Please try again shortly.");
-        data = await response.json();
+        const liveProjects = await response.json();
+        if (!Array.isArray(liveProjects)) throw new Error("GitHub returned an unexpected response. Please try again shortly.");
+        data = liveProjects;
+      } catch (error) {
+        if (error instanceof Error && error.message.startsWith("The GitHub profile")) throw error;
+        apiError = error;
       }
-      if (!Array.isArray(data)) throw new Error("GitHub returned an unexpected response. Please try again shortly.");
+
+      // Keep the generated snapshot as an outage fallback, never as the preferred source.
+      if (data === null) {
+        try {
+          const snapshot = await fetch(new URL("repos.json", document.baseURI), { cache: "no-store" });
+          if (!snapshot.ok) throw new Error("The repository snapshot is unavailable.");
+          const snapshotProjects = await snapshot.json();
+          if (!Array.isArray(snapshotProjects)) throw new Error("The repository snapshot has an unexpected format.");
+          data = snapshotProjects;
+        } catch (snapshotError) {
+          throw apiError || snapshotError;
+        }
+      }
       const siteRepo = `${username}/${cleanText(baseConfig.siteRepositoryName)}`.toLowerCase();
       const publicRepos = data.filter(repo => !repo.fork && !repo.private && repo.full_name.toLowerCase() !== siteRepo);
       const available = new Map(publicRepos.map(repo => [repo.full_name.toLowerCase(), repo]));
