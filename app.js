@@ -76,6 +76,14 @@
     } catch { return fallback; }
   }
 
+  function githubPagesUrl(repo) {
+    const [owner, name] = String(repo.full_name || `${username}/${repo.name}`).split("/");
+    if (!owner || !name) return "";
+    return name.toLowerCase() === `${owner.toLowerCase()}.github.io`
+      ? `https://${owner}.github.io/`
+      : `https://${owner}.github.io/${encodeURIComponent(name)}/`;
+  }
+
   function isApkAsset(asset) {
     return /\.apk(?:$|[?#])/i.test(String(asset.name || "")) || /\.apk(?:$|[?#])/i.test(String(asset.browser_download_url || ""));
   }
@@ -117,7 +125,7 @@
     return "tools";
   }
 
-  function categoryLabel(category) { return category === "web" ? "WEB APP" : category === "mobile" ? "MOBILE" : "TOOLS & MORE"; }
+  function categoryLabel(category) { return category === "web" ? "WEBSITE" : "APP"; }
   function icon(name) {
     const paths = {
       github: '<path d="M12 .9a11.1 11.1 0 0 0-3.5 21.63c.55.1.76-.24.76-.53v-2.02c-3.1.68-3.76-1.31-3.76-1.31-.5-1.3-1.24-1.65-1.24-1.65-1.02-.7.08-.69.08-.69 1.12.08 1.71 1.15 1.71 1.15 1 1.72 2.62 1.23 3.26.94.1-.73.4-1.23.71-1.52-2.48-.28-5.08-1.24-5.08-5.52 0-1.22.44-2.21 1.15-2.99-.12-.28-.5-1.42.11-2.95 0 0 .94-.3 3.05 1.14a10.6 10.6 0 0 1 5.55 0c2.11-1.44 3.04-1.14 3.04-1.14.61 1.53.23 2.67.12 2.95.71.78 1.14 1.77 1.14 2.99 0 4.29-2.61 5.24-5.1 5.52.4.35.76 1.03.76 2.08V22c0 .3.2.64.77.53A11.1 11.1 0 0 0 12 .9Z"/>',
@@ -147,20 +155,23 @@
     const hue = (82 + index * 79) % 360;
     const directDownload = cleanText(details.downloadUrl);
     const topics = topicsOf(repo).filter(topic => !["portfolio", "web", "android", "mobile", "ios", "flutter"].includes(topic)).slice(0, 2);
-    const tags = [category === "web" ? "Web app" : category === "mobile" ? "Mobile" : language, ...topics].slice(0, 3);
+    const tags = [language, ...topics].slice(0, 3);
     const releaseUrl = `${safeUrl(repo.html_url)}/archive/refs/heads/${encodeURIComponent(repo.default_branch || "main")}.zip`;
     const downloadUrl = directDownload ? safeUrl(directDownload, releaseUrl) : releaseUrl;
     const website = cleanText(details.websiteUrl);
-    const websiteUrl = website ? safeUrl(website) : safeUrl(repo.homepage || "");
+    const websiteUrl = website ? safeUrl(website) : safeUrl(repo.homepage || (category === "web" ? githubPagesUrl(repo) : ""));
     const repoUrl = safeUrl(repo.html_url);
     const primaryAction = category === "web"
-      ? `<a class="download-action source-action" href="${escapeHTML(repoUrl)}" target="_blank" rel="noreferrer" aria-label="View source for ${escapeHTML(title)}">${icon("github")}<span>View source</span></a>`
+      ? `<a class="download-action website-primary-action" href="${escapeHTML(websiteUrl)}" target="_blank" rel="noreferrer" aria-label="Visit website for ${escapeHTML(title)}">${icon("external")}<span>Visit website</span></a>`
       : `<a class="download-action" href="${escapeHTML(downloadUrl)}" ${directDownload ? "download" : ""} aria-label="Download ${escapeHTML(title)}">${icon("download")}<span>Get app</span></a>`;
-    const repoAction = category === "web" ? "" : `<a class="repo-action" href="${escapeHTML(repoUrl)}" target="_blank" rel="noreferrer" aria-label="View repository for ${escapeHTML(title)}">${icon("github")}</a>`;
+    const repoAction = `<a class="repo-action" href="${escapeHTML(repoUrl)}" target="_blank" rel="noreferrer" aria-label="View source repository for ${escapeHTML(title)}">${icon("github")}</a>`;
+    const extraWebsiteAction = category !== "web" && websiteUrl !== "#"
+      ? `<a class="website-action" href="${escapeHTML(websiteUrl)}" target="_blank" rel="noreferrer" aria-label="Visit website for ${escapeHTML(title)}">${icon("external")}<span>Visit website</span></a>`
+      : "";
     return `<article class="project-card" data-repository="${escapeHTML(repo.full_name)}" data-custom-download="${directDownload ? "true" : "false"}" style="--hue:${hue};--card-delay:${Math.min(index * 42, 336)}ms">
       <div class="project-cover"><span class="cover-type">${categoryLabel(category)}</span><a class="card-star" href="${escapeHTML(safeUrl(repo.html_url))}" target="_blank" rel="noreferrer" aria-label="View ${escapeHTML(title)} on GitHub">${icon("star")}<span>${repo.stargazers_count || 0}</span></a><span class="cover-icon">${escapeHTML(title.slice(0, 1))}</span><span class="cover-orbit"></span><span class="cover-spark">✳</span></div>
       <div class="project-body"><h3>${escapeHTML(title)}</h3><p class="project-description">${escapeHTML(description)}</p><div class="tag-list">${tags.map((tag, tagIndex) => `<span class="project-tag ${tagIndex === 0 ? "primary-tag" : ""}">${escapeHTML(tag)}</span>`).join("")}</div>
-      <div class="card-footer"><span class="updated-date">Updated ${escapeHTML(updated)}</span><div class="card-ctas">${websiteUrl !== "#" ? `<a class="website-action" href="${escapeHTML(websiteUrl)}" target="_blank" rel="noreferrer" aria-label="Open ${escapeHTML(title)}">${icon("external")}<span>Open</span></a>` : ""}${repoAction}${primaryAction}</div></div></div>
+      <div class="card-footer"><span class="updated-date">Updated ${escapeHTML(updated)}</span><div class="card-ctas">${extraWebsiteAction}${repoAction}${primaryAction}</div></div></div>
     </article>`;
   }
 
@@ -314,7 +325,7 @@
 
   document.addEventListener("click", async event => {
     const link = event.target.closest(".download-action");
-    if (!link || link.classList.contains("source-action") || link.closest(".project-card")?.dataset.customDownload === "true") return;
+    if (!link || link.classList.contains("website-primary-action") || link.closest(".project-card")?.dataset.customDownload === "true") return;
     const repo = repositoryMap.get(link.closest(".project-card")?.dataset.repository);
     if (!repo) return;
     event.preventDefault();

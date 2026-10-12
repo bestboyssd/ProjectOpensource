@@ -168,7 +168,7 @@ main { background: var(--paper); }
 .ticker-window::before { left:0; background:linear-gradient(90deg,#e7f1c2,transparent); }
 .ticker-window::after { right:0; background:linear-gradient(270deg,#e7f1c2,transparent); }
 .ticker-track { display:flex; width:max-content; min-height:58px; gap:0; padding:0; animation:ticker-scroll 31s linear infinite; will-change:transform; }
-.ticker-group { display:flex; flex:0 0 auto; align-items:center; gap:clamp(22px,4vw,54px); padding:0 clamp(24px,5vw,72px); }
+.ticker-group { --phrase-gap:clamp(22px,4vw,54px); display:flex; flex:0 0 auto; align-items:center; gap:var(--phrase-gap); padding:0 calc(var(--phrase-gap)/2); }
 .ticker-item { color:#273b30; font:900 clamp(24px,5.6vw,40px)/.95 var(--display); letter-spacing:-.055em; white-space:nowrap; }
 .ticker-highlight { color:#557348; }
 .ticker-window:hover .ticker-track { animation-play-state:paused; }
@@ -176,11 +176,19 @@ main { background: var(--paper); }
 @media (max-width:680px) {
   .ticker { min-height:52px; }
   .ticker-track { min-height:52px; animation-duration:24s; }
-  .ticker-group { gap:clamp(20px,6vw,32px); padding:0 22px; }
+  .ticker-group { --phrase-gap:clamp(20px,6vw,32px); gap:var(--phrase-gap); padding:0 calc(var(--phrase-gap)/2); }
   .ticker-item { font-size:clamp(23px,7vw,32px); letter-spacing:-.055em; }
 }
 @media (prefers-reduced-motion:reduce) {
   .ticker-track { width:100%; min-height:inherit; justify-content:center; animation:none; transform:none; }
   .ticker-group { flex:0 0 auto; flex-wrap:nowrap; justify-content:center; gap:clamp(16px,4vw,36px); padding:0 16px; }
   .ticker-group + .ticker-group { display:none; }
+}
+
+/* Prevent a thin slice of the ticker from peeking below the hero in short desktop windows. */
+@media (min-width:681px) and (max-height:786px) {
+  .hero { min-height:calc(100vh - 126px); }
+  @supports (height:100svh) {
+    .hero { min-height:calc(100svh - 126px); }
+  }
 }
