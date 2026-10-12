@@ -113,7 +113,7 @@
     const words = `${repo.name} ${repo.description || ""} ${topics.join(" ")}`.toLowerCase();
     if (topics.some(topic => /android|ios|mobile|flutter|react-native/.test(topic)) || /android|mobile app|ios app|flutter|react native/.test(words)) return "mobile";
     if (repo.homepage) return "web";
-    if (topics.some(topic => /web|website|webapp/.test(topic)) || /website|web app|webapp|frontend|next\.js/.test(words)) return "web";
+    if (topics.some(topic => /web|website|webapp/.test(topic)) || /website|web app|webapp|frontend|next\.js|cloud service/.test(words)) return "web";
     return "tools";
   }
 
