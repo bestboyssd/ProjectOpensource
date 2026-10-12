@@ -162,7 +162,7 @@ main { background: var(--paper); }
 }
 
 /* Lime marquee with a high-contrast, phone-first type treatment */
-.ticker { min-height:58px; overflow:hidden; border-top:1px solid #d4e2a6; border-bottom:1px solid #cbd99e; background:#e7f1c2; color:#273b30; }
+.ticker { min-height:58px; overflow:hidden; border-top:1px solid var(--ink); border-bottom:1px solid #cbd99e; background:#e7f1c2; color:#273b30; }
 .ticker-window { position:relative; min-width:0; overflow:hidden; }
 .ticker-window::before,.ticker-window::after { position:absolute; z-index:1; top:0; bottom:0; width:clamp(16px,5vw,64px); content:""; pointer-events:none; }
 .ticker-window::before { left:0; background:linear-gradient(90deg,#e7f1c2,transparent); }

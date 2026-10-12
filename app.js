@@ -128,8 +128,11 @@
   }
 
   function updateCounts() {
-    const counts = { all: repositories.length, web: 0, mobile: 0, tools: 0 };
-    repositories.forEach(repo => counts[projectCategory(repo)]++);
+    const counts = { all: repositories.length, mobile: 0, web: 0 };
+    repositories.forEach(repo => {
+      const category = projectCategory(repo);
+      if (Object.hasOwn(counts, category)) counts[category]++;
+    });
     Object.entries(counts).forEach(([key, value]) => {
       const node = document.querySelector(`[data-count="${key}"]`);
       if (node) node.textContent = value;
