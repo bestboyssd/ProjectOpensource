@@ -15,6 +15,7 @@
   let username = "";
   let repositories = [];
   let repositoryMap = new Map();
+  const releaseDownloadCache = new Map();
   let activeFilter = "all";
   let visibleLimit = cardLimit;
 
@@ -73,6 +74,36 @@
       const url = new URL(value, window.location.href);
       return ["http:", "https:"].includes(url.protocol) ? url.href : fallback;
     } catch { return fallback; }
+  }
+
+  function isApkAsset(asset) {
+    return /\.apk(?:$|[?#])/i.test(String(asset.name || "")) || /\.apk(?:$|[?#])/i.test(String(asset.browser_download_url || ""));
+  }
+
+  function findReleaseDownload(releases) {
+    if (!Array.isArray(releases)) return "";
+    const published = releases.filter(release => !release.draft && Array.isArray(release.assets));
+    const apkRelease = published.find(release => release.assets.some(isApkAsset));
+    const apkAsset = apkRelease?.assets.find(asset => asset.browser_download_url && isApkAsset(asset));
+    if (apkAsset) return apkAsset.browser_download_url;
+
+    const latestStableRelease = published.find(release => !release.prerelease);
+    return latestStableRelease?.assets.find(asset => asset.browser_download_url)?.browser_download_url || "";
+  }
+
+  function releaseDownloadFor(repo) {
+    const repoName = repo.full_name || `${username}/${repo.name}`;
+    if (releaseDownloadCache.has(repoName)) return releaseDownloadCache.get(repoName);
+    const [owner, name] = repoName.split("/");
+    const endpoint = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/releases?per_page=10`;
+    const request = fetch(endpoint, { headers: { Accept: "application/vnd.github+json" } })
+      .then(async response => response.ok ? findReleaseDownload(await response.json()) : "")
+      .catch(error => {
+        releaseDownloadCache.delete(repoName);
+        throw error;
+      });
+    releaseDownloadCache.set(repoName, request);
+    return request;
   }
 
   function projectCategory(repo) {
@@ -287,13 +318,8 @@
     label.textContent = "Getting…";
     const archive = `${safeUrl(repo.html_url)}/archive/refs/heads/${encodeURIComponent(repo.default_branch || "main")}.zip`;
     try {
-      const response = await fetch(`https://api.github.com/repos/${encodeURIComponent(username)}/${encodeURIComponent(repo.name)}/releases/latest`, { headers: { Accept: "application/vnd.github+json" } });
-      if (response.ok) {
-        const release = await response.json();
-        const asset = release.assets?.find(item => item.browser_download_url);
-        if (asset) { window.location.assign(safeUrl(asset.browser_download_url, archive)); return; }
-      }
-      window.location.assign(archive);
+      const releaseDownload = await releaseDownloadFor(repo);
+      window.location.assign(safeUrl(releaseDownload, archive));
     } catch { window.location.assign(archive); }
     finally { link.classList.remove("downloading"); label.textContent = oldText; }
   });
