@@ -1,8 +1,7 @@
 /*
- * Site settings: enter your GitHub username below.
- * Public repositories are discovered automatically; no token is needed.
- * Repositories tagged with the GitHub topic "portfolio" appear in the showcase.
- * If no repositories have that topic yet, all your non-fork public repositories appear.
+ * Public repos are discovered from GitHub without a token.
+ * Only repositories selected in the admin studio appear on the website.
+ * New repositories stay hidden until you enable them.
  */
 window.SITE_CONFIG = {
   githubUsername: "bestboyssd",

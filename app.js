@@ -257,13 +257,8 @@
       const siteRepo = `${username}/${cleanText(baseConfig.siteRepositoryName)}`.toLowerCase();
       const publicRepos = data.filter(repo => !repo.fork && !repo.private && repo.full_name.toLowerCase() !== siteRepo);
       const available = new Map(publicRepos.map(repo => [repo.full_name.toLowerCase(), repo]));
-      let chosen;
-      if (Array.isArray(catalog.featuredRepos)) {
-        chosen = catalog.featuredRepos.map(name => available.get(String(name).toLowerCase())).filter(Boolean);
-      } else {
-        const tagged = publicRepos.filter(repo => topicsOf(repo).includes("portfolio"));
-        chosen = tagged.length ? tagged : publicRepos;
-      }
+      const featuredRepos = Array.isArray(catalog.featuredRepos) ? catalog.featuredRepos : [];
+      const chosen = featuredRepos.map(name => available.get(String(name).toLowerCase())).filter(Boolean);
       repositories = chosen.slice(0, maxProjects);
       repositoryMap = new Map(repositories.map(repo => [repo.full_name, repo]));
       updateCounts();
