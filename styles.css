@@ -218,7 +218,7 @@ main { background: var(--paper); }
   .main-nav { gap:42px; }
   .main-nav a { font-size:13px; }
   .header-profile { padding:12px 16px; font-size:12px; }
-  .hero { max-width:min(96vw,2000px); grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr); padding-inline:clamp(96px,7vw,136px); }
+  .hero { width:100%; max-width:none; margin-inline:0; grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr); padding-inline:clamp(96px,7vw,136px); }
   .hero h1 { max-width:760px; font-size:clamp(83px,4.9vw,100px); letter-spacing:-.055em; }
   .hero-description { max-width:520px; font-size:15px; }
   .hero-cta { min-height:52px; padding-inline:19px 10px; font-size:12px; }
@@ -247,7 +247,7 @@ main { background: var(--paper); }
   .repo-action { width:34px; height:34px; flex-basis:34px; }
   .download-action,.website-action { min-height:36px; padding-inline:13px; font-size:11px; }
   .updated-date { font-size:8px; }
-  .about-section { max-width:min(96vw,2000px); min-height:420px; margin-inline:auto; padding:70px clamp(90px,7vw,160px); }
+  .about-section { width:100%; max-width:none; min-height:420px; margin-inline:0; padding:70px clamp(90px,7vw,160px); }
   .about-graphic { transform:scale(1.1); }
   .about-copy { max-width:600px; }
   .about-copy h2 { font-size:clamp(50px,3.3vw,66px); letter-spacing:-.045em; }
