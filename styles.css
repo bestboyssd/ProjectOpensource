@@ -171,18 +171,18 @@ main { background: var(--paper); }
 .ticker-window::before { left:0; background:linear-gradient(90deg,#e7f1c2,transparent); }
 .ticker-window::after { right:0; background:linear-gradient(270deg,#e7f1c2,transparent); }
 .ticker-track { display:flex; width:max-content; min-height:58px; gap:0; padding:0; animation:ticker-scroll 31s linear infinite; will-change:transform; }
-.ticker-group { --phrase-gap:clamp(22px,4vw,54px); display:flex; flex:0 0 auto; align-items:center; gap:var(--phrase-gap); padding:0 calc(var(--phrase-gap)/2); }
-.ticker-item { color:#273b30; font:900 clamp(24px,5.6vw,40px)/.95 var(--display); letter-spacing:-.055em; white-space:nowrap; }
+.ticker-group { --phrase-gap:clamp(16.5px,3vw,40.5px); display:flex; flex:0 0 auto; align-items:center; gap:var(--phrase-gap); padding:0 calc(var(--phrase-gap)/2); }
+.ticker-item { color:#273b30; font:900 clamp(18px,4.2vw,30px)/.95 var(--display); letter-spacing:-.055em; text-transform:uppercase; white-space:nowrap; }
 .ticker-highlight { color:inherit; }
-.ticker-separator { flex:0 0 auto; color:#273b30; font:700 clamp(15px,3.2vw,23px)/1 var(--display); }
+.ticker-separator { flex:0 0 auto; color:#273b30; font:700 clamp(11.25px,2.4vw,17.25px)/1 var(--display); }
 .ticker-window:hover .ticker-track { animation-play-state:paused; }
-@keyframes ticker-scroll { to { transform:translateX(-50%); } }
+@keyframes ticker-scroll { to { transform:translateX(-16.666667%); } }
 @media (max-width:680px) {
   .ticker { min-height:52px; }
   .ticker-track { min-height:52px; animation-duration:24s; }
-  .ticker-group { --phrase-gap:clamp(10px,3.5vw,19px); gap:var(--phrase-gap); padding:0 calc(var(--phrase-gap)/2); }
-  .ticker-item { font-size:clamp(23px,7vw,32px); letter-spacing:-.055em; }
-  .ticker-separator { font-size:17px; }
+  .ticker-group { --phrase-gap:clamp(7.5px,2.625vw,14.25px); gap:var(--phrase-gap); padding:0 calc(var(--phrase-gap)/2); }
+  .ticker-item { font-size:clamp(17.25px,5.25vw,24px); letter-spacing:-.055em; }
+  .ticker-separator { font-size:12.75px; }
 }
 @media (prefers-reduced-motion:reduce) {
   .ticker-track { width:100%; min-height:inherit; justify-content:center; animation:none; transform:none; }
@@ -208,4 +208,53 @@ main { background: var(--paper); }
   .made-with { align-items:center; }
   .made-with-label { padding-top:0; }
   .tag-list { margin-top:0; }
+}
+
+/* Give wide desktop displays a roomier layout and larger type. */
+@media (min-width:1600px) {
+  .site-header { height:clamp(68px,3.75vw,82px); }
+  .header-inner { max-width:min(92vw,1900px); padding-inline:clamp(64px,6vw,120px); }
+  .brand-name { font-size:16px; }
+  .main-nav { gap:42px; }
+  .main-nav a { font-size:13px; }
+  .header-profile { padding:12px 16px; font-size:12px; }
+  .hero { max-width:min(96vw,2000px); grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr); padding-inline:clamp(96px,7vw,136px); }
+  .hero h1 { max-width:760px; font-size:clamp(83px,4.9vw,100px); letter-spacing:-.055em; }
+  .hero-description { max-width:520px; font-size:15px; }
+  .hero-cta { min-height:52px; padding-inline:19px 10px; font-size:12px; }
+  .hero-proof strong { font-size:11px; }
+  .hero-proof div:last-child span { font-size:10px; }
+  .hero-art { width:100%; max-width:clamp(520px,30vw,640px); height:clamp(410px,24vw,480px); transform:scale(1.05); }
+  .apps-section { max-width:min(92vw,2000px); padding:clamp(90px,6vw,116px) clamp(90px,7vw,160px) clamp(96px,7vw,130px); }
+  .section-heading h2 { font-size:clamp(53px,3.5vw,68px); letter-spacing:-.045em; }
+  .section-heading p { max-width:380px; font-size:13px; }
+  .collection-tools { gap:24px; margin-top:40px; }
+  .filter-tab { min-height:40px; padding-inline:15px; font-size:12px; }
+  .search-box { width:250px; height:40px; }
+  .search-box input { font-size:12px; }
+  .project-grid { gap:20px; }
+  .project-card { min-height:390px; }
+  .project-cover { height:148px; }
+  .cover-type { font-size:9px; }
+  .cover-icon { width:82px; height:82px; font-size:32px; }
+  .project-body { padding:24px 20px 0; }
+  .project-card h3 { font-size:21px; }
+  .project-description { min-height:42px; font-size:12px; }
+  .made-with { gap:10px; margin-top:14px; }
+  .made-with-label { font-size:8px; }
+  .project-tag { padding:6px 9px; font-size:9px; }
+  .card-footer { min-height:61px; }
+  .repo-action { width:34px; height:34px; flex-basis:34px; }
+  .download-action,.website-action { min-height:36px; padding-inline:13px; font-size:11px; }
+  .updated-date { font-size:8px; }
+  .about-section { max-width:min(96vw,2000px); min-height:420px; margin-inline:auto; padding:70px clamp(90px,7vw,160px); }
+  .about-graphic { transform:scale(1.1); }
+  .about-copy { max-width:600px; }
+  .about-copy h2 { font-size:clamp(50px,3.3vw,66px); letter-spacing:-.045em; }
+  .about-copy p { max-width:500px; font-size:13px; }
+  .about-link { font-size:13px; }
+  .site-footer { padding-inline:clamp(76px,7.2vw,140px); }
+  .footer-brand .brand-name { font-size:14px; }
+  .footer-note,.footer-links { font-size:11px; }
+  .footer-links { gap:22px; }
 }
